@@ -1,0 +1,4 @@
+name: ConfigParser
+main: com.licrafter.parser.ConfigParser
+version: 0.0.1
+author: shell
