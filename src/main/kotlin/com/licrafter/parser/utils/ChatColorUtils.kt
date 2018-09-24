@@ -2,6 +2,11 @@ package com.licrafter.parser.utils
 
 import org.bukkit.ChatColor
 
+/**
+ * Created by shell on 2018/9/24.
+ * <p>
+ * Gmail: shellljx@gmail.com
+ */
 object ChatColorUtils {
 
     /**

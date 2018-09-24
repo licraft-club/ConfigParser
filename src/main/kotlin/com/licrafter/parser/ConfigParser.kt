@@ -7,15 +7,14 @@ import org.bukkit.plugin.java.JavaPlugin
  * <p>
  * Gmail: shellljx@gmail.com
  */
-class ConfigParser: JavaPlugin() {
+class ConfigParser : JavaPlugin() {
 
     override fun onEnable() {
+        super.onEnable()
     }
 
     override fun onDisable() {
         super.onDisable()
     }
-
-
 }
 
