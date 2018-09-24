@@ -42,31 +42,29 @@ object ParserAPI {
      * save config values
      */
     fun saveConfig(plugin: JavaPlugin, vararg values: Any) {
-
+        values.forEach {
+            saveConfig(plugin, it)
+        }
     }
 
     /**
      * save config value
      */
     fun saveConfig(plugin: JavaPlugin, value: Any) {
-
+        saveConfig(plugin, null, value)
     }
 
     /**
      * save config value to specific path
      */
-    fun saveConfig(plugin: JavaPlugin, filePath: String, value: Any) {
-
+    fun saveConfig(plugin: JavaPlugin, filePath: String?, value: Any) {
+        val configuration = initConfig(plugin, filePath, value.javaClass)
+        BeanInterpreter().encodeToYml(configuration.getConfig(), value)
+        configuration.saveConfig()
     }
 
     private fun initConfig(plugin: JavaPlugin, configFilePath: String?, target: Any): DataConfigFile {
-        val configFileName: String
-        configFileName = if (configFilePath != null) {
-            configFilePath
-        } else {
-            val configBean = target::class.java.getAnnotation(ConfigBean::class.java)
-            configBean.file
-        }
+        val configFileName: String = configFilePath ?: target::class.java.getAnnotation(ConfigBean::class.java).file
         return DataConfigFile(plugin, configFileName)
     }
 }

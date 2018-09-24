@@ -2,6 +2,7 @@ package com.licrafter.parser.interpreter
 
 import com.licrafter.parser.AnnotationInterpreter
 import com.licrafter.parser.annotation.ConfigValue
+import com.licrafter.parser.utils.ChatColorUtils
 import com.licrafter.parser.utils.TypeUtil
 import org.bukkit.ChatColor
 import org.bukkit.configuration.ConfigurationSection
@@ -10,6 +11,7 @@ import org.bukkit.util.Vector
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.util.HashMap
+import java.util.HashSet
 
 /**
  * Created by shell on 2018/9/24.
@@ -80,12 +82,62 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
         return null
     }
 
-    private fun getValuePath(key: String?): String {
-        return if (key == null) annotation.path else annotation.path + "." + key
+    override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
+        try {
+            val targetClass = target.javaClass
+            if (TypeUtil.isMapType(targetClass)) {
+                saveMapValue(configuration, target)
+            } else {
+                saveSimpleValue(configuration, target, null)
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("encode value: " + annotation.path + " error:\n" + e)
+        }
+
     }
 
+    private fun saveMapValue(configuration: ConfigurationSection, target: Any) {
+        if (!TypeUtil.isMapType(target.javaClass)) {
+            return
+        }
+        val map = target as Map<*, *>
+        val genericType = field.genericType
+        if (genericType != null && genericType is ParameterizedType) {
+            val valueClass = genericType.actualTypeArguments[1] as Class<*>
+            val removeSet = HashSet<String>()
+            removeSet.addAll(configuration.getConfigurationSection(annotation.path).getKeys(false))
+            removeSet.removeAll(map.keys)
+            for (key in removeSet) {
+                saveSimpleValue(configuration, null, key)
+            }
+            if (TypeUtil.isBaseType(valueClass)) {
+                map.keys.filterIsInstance<String>()
+                        .forEach { saveSimpleValue(configuration, map[it], it) }
+            }
+        }
+    }
 
-    override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
+    private fun saveSimpleValue(configuration: ConfigurationSection, target: Any?, key: String?) {
+        var temp = target
+        if (annotation.colorChar != ' ') {
+            if (temp is String) {
+                temp = ChatColorUtils.encodeAlternateColorCodes(annotation.colorChar, temp)
+            }
+            if (temp is List<*>) {
+                temp.map {
+                    if (it is String) {
+                        ChatColorUtils.encodeAlternateColorCodes(annotation.colorChar, it)
+                    } else {
+                        it
+                    }
+                }
+            }
+        }
+        configuration.set(getValuePath(key), temp)
+    }
+
+    private fun getValuePath(key: String?): String {
+        return if (key == null) annotation.path else annotation.path + "." + key
     }
 
     val annotation = field.getAnnotation(ConfigValue::class.java)

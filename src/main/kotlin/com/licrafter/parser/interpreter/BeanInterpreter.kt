@@ -32,7 +32,18 @@ class BeanInterpreter : AnnotationInterpreter {
 
 
     override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val targetClass = target.javaClass
+        try {
+            for (field in targetClass.declaredFields) {
+                field.isAccessible = true
+                val interpreter = getInterpreter(field) ?: continue
+                val fieldConfiguration = getFieldConfiguration(interpreter, configuration) ?: continue
+                interpreter.encodeToYml(fieldConfiguration, field.get(target))
+            }
+        } catch (e: Exception) {
+            throw RuntimeException("encode bean " + targetClass.name + "error:\n" + e)
+        }
+
     }
 
 
