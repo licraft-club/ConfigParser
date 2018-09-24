@@ -1,5 +1,8 @@
 package com.licrafter.parser
 
+import com.licrafter.parser.annotation.ConfigBean
+import com.licrafter.parser.interpreter.BeanInterpreter
+import com.licrafter.parser.utils.DataConfigFile
 import org.bukkit.plugin.java.JavaPlugin
 
 /**
@@ -22,14 +25,17 @@ object ParserAPI {
      * load config value
      */
     fun loadConfig(plugin: JavaPlugin, value: Any) {
-
+        loadConfig(plugin, null, value)
     }
 
     /**
      * load config value with specific path
      */
-    fun loadConfig(plugin: JavaPlugin, filePath: String, value: Any) {
-
+    fun loadConfig(plugin: JavaPlugin, filePath: String?, value: Any) {
+        val newValue = BeanInterpreter().decodeFromYml(initConfig(plugin, filePath, value).getConfig(), value::class.java)
+        value::class.java.declaredFields.forEach {
+            it.set(value, it.get(newValue))
+        }
     }
 
     /**
@@ -51,5 +57,16 @@ object ParserAPI {
      */
     fun saveConfig(plugin: JavaPlugin, filePath: String, value: Any) {
 
+    }
+
+    private fun initConfig(plugin: JavaPlugin, configFilePath: String?, target: Any): DataConfigFile {
+        val configFileName: String
+        configFileName = if (configFilePath != null) {
+            configFilePath
+        } else {
+            val configBean = target::class.java.getAnnotation(ConfigBean::class.java)
+            configBean.file
+        }
+        return DataConfigFile(plugin, configFileName)
     }
 }

@@ -15,4 +15,7 @@ class ConfigParser: JavaPlugin() {
     override fun onDisable() {
         super.onDisable()
     }
+
+
 }
+
