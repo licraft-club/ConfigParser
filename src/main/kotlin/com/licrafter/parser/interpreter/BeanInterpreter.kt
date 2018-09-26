@@ -31,7 +31,10 @@ class BeanInterpreter : AnnotationInterpreter {
     }
 
 
-    override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
+    override fun encodeToYml(configuration: ConfigurationSection, target: Any?) {
+        if (target == null) {
+            return
+        }
         val targetClass = target.javaClass
         try {
             for (field in targetClass.declaredFields) {

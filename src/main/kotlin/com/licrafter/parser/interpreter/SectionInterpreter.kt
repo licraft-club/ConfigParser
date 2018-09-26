@@ -2,7 +2,7 @@ package com.licrafter.parser.interpreter
 
 import com.licrafter.parser.AnnotationInterpreter
 import com.licrafter.parser.annotation.ConfigSection
-import com.licrafter.parser.utils.TypeUtil
+import com.licrafter.parser.utils.TypeUtils
 import org.bukkit.configuration.ConfigurationSection
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
@@ -18,12 +18,12 @@ class SectionInterpreter(private val field: Field) : AnnotationInterpreter {
 
     override fun decodeFromYml(configuration: ConfigurationSection, targetClass: Class<out Any>): Any? {
         try {
-            if (TypeUtil.isMapType(targetClass)) {
+            if (TypeUtils.isMapType(targetClass)) {
                 val map = HashMap<Any, Any>()
                 val genericType = field.genericType
                 if (genericType != null && genericType is ParameterizedType) {
                     val valueClass = genericType.actualTypeArguments[1] as Class<*>
-                    if (!TypeUtil.isBaseType(valueClass)) {
+                    if (!TypeUtils.isBaseType(valueClass)) {
                         val keySet = configuration.getKeys(false)
                         for (key in keySet) {
                             val interpreter = BeanInterpreter()
@@ -35,7 +35,7 @@ class SectionInterpreter(private val field: Field) : AnnotationInterpreter {
                         return map
                     }
                 }
-            } else if (!TypeUtil.isBaseType(targetClass)) {
+            } else if (!TypeUtils.isBaseType(targetClass)) {
                 val interpreter = BeanInterpreter()
                 val value = interpreter.decodeFromYml(configuration, targetClass)
                 if (value != null) {
@@ -49,8 +49,11 @@ class SectionInterpreter(private val field: Field) : AnnotationInterpreter {
 
     }
 
-    override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
-        if (TypeUtil.isMapType(target.javaClass)) {
+    override fun encodeToYml(configuration: ConfigurationSection, target: Any?) {
+        if (target == null) {
+            return
+        }
+        if (TypeUtils.isMapType(target.javaClass)) {
             val map = target as Map<*, *>
             val genericType = field.genericType
             if (genericType != null && genericType is ParameterizedType) {
@@ -61,7 +64,7 @@ class SectionInterpreter(private val field: Field) : AnnotationInterpreter {
                 for (key in removeKeyset) {
                     configuration.set(key, null)
                 }
-                if (!TypeUtil.isBaseType(valueClass)) {
+                if (!TypeUtils.isBaseType(valueClass)) {
                     map.keys.filterIsInstance<String>()
                             .forEach { key ->
                                 if (!configuration.contains(key)) {
@@ -73,7 +76,7 @@ class SectionInterpreter(private val field: Field) : AnnotationInterpreter {
                             }
                 }
             }
-        } else if (!TypeUtil.isBaseType(target.javaClass)) {
+        } else if (!TypeUtils.isBaseType(target.javaClass)) {
             val interpreter = BeanInterpreter()
             interpreter.encodeToYml(configuration, target)
         }

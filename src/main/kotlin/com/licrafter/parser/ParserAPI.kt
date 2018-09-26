@@ -12,6 +12,8 @@ import org.bukkit.plugin.java.JavaPlugin
  */
 object ParserAPI {
 
+    var debug = false
+
     /**
      * load config values
      */
@@ -58,13 +60,13 @@ object ParserAPI {
      * save config value to specific path
      */
     fun saveConfig(plugin: JavaPlugin, filePath: String?, value: Any) {
-        val configuration = initConfig(plugin, filePath, value.javaClass)
+        val configuration = initConfig(plugin, filePath, value)
         BeanInterpreter().encodeToYml(configuration.getConfig(), value)
         configuration.saveConfig()
     }
 
     private fun initConfig(plugin: JavaPlugin, configFilePath: String?, target: Any): DataConfigFile {
-        val configFileName: String = configFilePath ?: target::class.java.getAnnotation(ConfigBean::class.java).file
+        val configFileName = configFilePath ?: target::class.java.getAnnotation(ConfigBean::class.java).file
         return DataConfigFile(plugin, configFileName)
     }
 }

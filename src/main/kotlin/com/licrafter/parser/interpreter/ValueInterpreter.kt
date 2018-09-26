@@ -3,7 +3,9 @@ package com.licrafter.parser.interpreter
 import com.licrafter.parser.AnnotationInterpreter
 import com.licrafter.parser.annotation.ConfigValue
 import com.licrafter.parser.utils.ChatColorUtils
-import com.licrafter.parser.utils.TypeUtil
+import com.licrafter.parser.utils.LogUtils
+import com.licrafter.parser.utils.TypeUtils
+import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
@@ -22,7 +24,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
 
     override fun decodeFromYml(configuration: ConfigurationSection, targetClass: Class<out Any>): Any? {
         try {
-            return if (TypeUtil.isMapType(targetClass)) {
+            return if (TypeUtils.isMapType(targetClass)) {
                 decodeMapValue(configuration)
             } else {
                 decodeSimpleValue(configuration, null)
@@ -38,7 +40,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
         val map = HashMap<String, Any>()
         if (genericType != null && genericType is ParameterizedType) {
             val valueClass = genericType.actualTypeArguments[1] as Class<*>
-            if (TypeUtil.isBaseType(valueClass)) {
+            if (TypeUtils.isBaseType(valueClass)) {
                 val keySet = configuration.getConfigurationSection(annotation.path).getKeys(false)
                 for (key in keySet) {
                     decodeSimpleValue(configuration, key)?.let {
@@ -52,10 +54,12 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
     }
 
     private fun decodeSimpleValue(configuration: ConfigurationSection, key: String?): Any? {
+        var result: Any? = null
+
         if (configuration.contains(annotation.path)) {
             when {
-                field.type == ItemStack::class.java -> return configuration.getItemStack(getValuePath(key))
-                field.type == Vector::class.java -> return configuration.getVector(getValuePath(key))
+                field.type == ItemStack::class.java -> result = configuration.getItemStack(getValuePath(key))
+                field.type == Vector::class.java -> result = configuration.getVector(getValuePath(key))
                 else -> {
                     var value = configuration.get(getValuePath(key))
                     if (annotation.colorChar != ' ') {
@@ -64,7 +68,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
                         }
 
                         if (value is List<*>) {
-                            return value.map {
+                            value = value.map {
                                 if (it is String) {
                                     ChatColor.translateAlternateColorCodes(annotation.colorChar, it)
                                 } else {
@@ -73,19 +77,23 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
                             }
                         }
                     }
-                    return value
+                    result = value
                 }
             }
         } else if (!annotation.default.isEmpty()) {
-            return annotation.default
+            result = annotation.default
         }
-        return null
+        LogUtils.info(getValuePath(key), result)
+        return result
     }
 
-    override fun encodeToYml(configuration: ConfigurationSection, target: Any) {
+    override fun encodeToYml(configuration: ConfigurationSection, target: Any?) {
+        if (target == null) {
+            return
+        }
         try {
             val targetClass = target.javaClass
-            if (TypeUtil.isMapType(targetClass)) {
+            if (TypeUtils.isMapType(targetClass)) {
                 saveMapValue(configuration, target)
             } else {
                 saveSimpleValue(configuration, target, null)
@@ -97,7 +105,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
     }
 
     private fun saveMapValue(configuration: ConfigurationSection, target: Any) {
-        if (!TypeUtil.isMapType(target.javaClass)) {
+        if (!TypeUtils.isMapType(target.javaClass)) {
             return
         }
         val map = target as Map<*, *>
@@ -110,7 +118,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
             for (key in removeSet) {
                 saveSimpleValue(configuration, null, key)
             }
-            if (TypeUtil.isBaseType(valueClass)) {
+            if (TypeUtils.isBaseType(valueClass)) {
                 map.keys.filterIsInstance<String>()
                         .forEach { saveSimpleValue(configuration, map[it], it) }
             }
@@ -124,7 +132,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
                 temp = ChatColorUtils.encodeAlternateColorCodes(annotation.colorChar, temp)
             }
             if (temp is List<*>) {
-                temp.map {
+                temp = temp.map {
                     if (it is String) {
                         ChatColorUtils.encodeAlternateColorCodes(annotation.colorChar, it)
                     } else {
@@ -133,6 +141,7 @@ class ValueInterpreter(private val field: Field) : AnnotationInterpreter {
                 }
             }
         }
+        LogUtils.info(getValuePath(key), temp)
         configuration.set(getValuePath(key), temp)
     }
 

@@ -22,13 +22,13 @@ public class ParserSample extends JavaPlugin {
             saveDefaultConfig();
             reloadConfig();
         }
+        ParserAPI.INSTANCE.setDebug(true);
 
         ParserAPI.INSTANCE.loadConfig(this, config);
-        System.out.println("ping: " + config.name);
     }
 
     @Override
     public void onDisable() {
-        super.onDisable();
+        ParserAPI.INSTANCE.saveConfig(this, config);
     }
 }

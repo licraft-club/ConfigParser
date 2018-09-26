@@ -11,5 +11,5 @@ interface AnnotationInterpreter {
 
     fun decodeFromYml(configuration: ConfigurationSection, targetClass: Class<out Any>): Any?
 
-    fun encodeToYml(configuration: ConfigurationSection, target: Any)
+    fun encodeToYml(configuration: ConfigurationSection, target: Any?)
 }

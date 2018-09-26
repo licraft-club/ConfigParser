@@ -8,6 +8,6 @@ package com.licrafter.parser.annotation
  */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FILE, AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ConfigValue(val path: String = "",
+annotation class ConfigValue(val path: String,
                              val colorChar: Char = ' ',
                              val default: String = "")
