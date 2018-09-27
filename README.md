@@ -2,6 +2,8 @@
 
 The ConfigParser API a simple annotation based config system which is  written in kotlin, it allows you to use provided `saveConfig` and `loadConfig` methods to handle saving and loading of all annotated fields. 
 [Source code: https://github.com/licraft-club/ConfigParser](https://github.com/licraft-club/ConfigParser)
+
+[中文教程](./README-cn.md)
 ### How to use
 ```java
 public class ParserSample extends JavaPlugin {
@@ -29,13 +31,13 @@ public class ParserSample extends JavaPlugin {
     }
 ```
 ### @ConfigBean
-`@ConfigBean` configures which config file to scan for classes with annotation configuration. We can specify the config file path directly with `file` argument (*config.yml* is default value for file):
+`@ConfigBean` configures which configuration file to load for classes with annotation configuration. We can specify the configuration file path directly with `file` argument (*config.yml* is default value for file):
 ```java
 @ConfigBean
 public class TestConfig {
 }
 ```
-Also, we can point the config file path to the classes programmatically
+Also, we can point the configuration file path to the classes programmatically
 ```java
 public class TestConfig {
 }
