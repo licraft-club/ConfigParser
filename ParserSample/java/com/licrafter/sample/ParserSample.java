@@ -20,7 +20,6 @@ public class ParserSample extends JavaPlugin {
         if (!file.exists()) {
             getConfig().options().copyDefaults(true);
             saveDefaultConfig();
-            reloadConfig();
         }
         ParserAPI.INSTANCE.setDebug(true);
 
