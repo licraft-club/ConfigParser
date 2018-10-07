@@ -48,7 +48,7 @@ public void onEnable() {
 }
 ```
 ### @ConfigValue
-`@ConfigValue` is an annotation of the field that can be read and written directly through `FileConfiguration`. Such as Basic Data Types, List and ItemStack.
+`@ConfigValue` is an annotation of the field that can be read and written directly through `FileConfiguration`. Such as Primitive Data Types, List and ItemStack.
 For example:
 ```java
 /**
